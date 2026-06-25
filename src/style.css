@@ -1,0 +1,28 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #11141a; color: #e6e6e6; }
+.layout { height: 100vh; display: flex; flex-direction: column; }
+.topbar { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 1rem; background: #1a1f29; }
+.topbar h1 { font-size: 1rem; margin: 0; flex: 0 0 auto; }
+.modes { display: flex; gap: 0.25rem; }
+.modes button, .topbar #langToggle { background: #232a36; color: #cfd6e4; border: 1px solid #313a4a; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; }
+.modes button.active { background: #3b82f6; color: white; }
+.modes button[disabled] { opacity: 0.5; cursor: not-allowed; }
+#langToggle { margin-left: auto; }
+.main { flex: 1; display: grid; grid-template-columns: 280px 1fr 280px; min-height: 0; }
+.inputs, .metrics { padding: 1rem; overflow: auto; background: #161b23; }
+.inputs textarea { width: 100%; background: #0e1117; color: #e6e6e6; border: 1px solid #313a4a; border-radius: 6px; font-family: monospace; }
+.inputs label { display: block; margin: 0.5rem 0 0.25rem; font-size: 0.85rem; color: #9aa6ba; }
+.suggest-row { display: flex; gap: 0.5rem; margin: 0.5rem 0; }
+.inputs #run { width: 100%; margin-top: 0.75rem; background: #22c55e; color: #03210f; border: none; padding: 0.5rem; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.errors { color: #f87171; margin-top: 0.75rem; font-size: 0.85rem; }
+.stage { display: flex; flex-direction: column; min-height: 0; }
+#canvas { flex: 1; width: 100%; min-height: 0; background: #0b0e13; }
+.transport { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: #161b23; }
+.transport button { background: #232a36; color: #cfd6e4; border: 1px solid #313a4a; border-radius: 6px; padding: 0.3rem 0.6rem; cursor: pointer; }
+.transport #scrubber { flex: 1; }
+.counter { font-family: monospace; font-size: 0.85rem; color: #9aa6ba; white-space: nowrap; }
+.verdict { font-weight: 800; font-size: 1.5rem; padding: 0.5rem; border-radius: 6px; text-align: center; }
+.verdict.ok { background: #14532d; color: #4ade80; }
+.verdict.ko { background: #4c1d1d; color: #f87171; }
+#metricsBody { margin-top: 1rem; font-family: monospace; font-size: 0.85rem; line-height: 1.6; }
