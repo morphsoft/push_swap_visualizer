@@ -38,8 +38,8 @@ describe("efficiencyPct", () => {
   });
   it("is round(bound/opCount*100)", () => {
     const bound = theoreticalBound(100); // 664
-    expect(efficiencyPct(664, 100)).toBe(100);
-    expect(efficiencyPct(1328, 100)).toBe(50);
+    expect(efficiencyPct(bound, 100)).toBe(100);
+    expect(efficiencyPct(bound * 2, 100)).toBe(50);
   });
 });
 
