@@ -30,29 +30,6 @@ const gradeKey = {
   fail: "grade_fail",
 } as const;
 
-export function renderMetrics(
-  el: HTMLElement,
-  opCount: number,
-  breakdown: Record<string, number>,
-  grade: Grade,
-): void {
-  const parts: string[] = [];
-  parts.push(`${t("total_ops")}: ${opCount}`);
-  const bd = Object.entries(breakdown)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([op, n]) => `${op}:${n}`)
-    .join("  ");
-  if (bd) parts.push(bd);
-  if (grade.applicable) {
-    parts.push(`${grade.points}/5 — ${t(gradeKey[grade.label])}`);
-  }
-  el.replaceChildren();
-  for (const p of parts) {
-    const div = document.createElement("div");
-    div.textContent = p;
-    el.appendChild(div);
-  }
-}
 
 function gradeLabel(grade: Grade): string {
   return t(gradeKey[grade.label]);
