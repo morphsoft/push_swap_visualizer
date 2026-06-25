@@ -10,6 +10,16 @@ export interface RenderContext {
   n: number;
 }
 
+// Largest height a single stack element may occupy. Without a cap, a stack of
+// 2-3 items stretches each element across the whole canvas, reading as giant
+// slabs instead of discrete, legible elements.
+const MAX_ROW_HEIGHT = 64;
+
+export function tileRowHeight(count: number, height: number): number {
+  if (count <= 0) return 0;
+  return Math.min(MAX_ROW_HEIGHT, height / count);
+}
+
 export class StackRenderer {
   private ctx: CanvasRenderingContext2D;
   private tileThreshold: number;
@@ -67,7 +77,7 @@ export class StackRenderer {
     const { ctx } = this;
     const n = stack.length;
     if (n === 0) return;
-    const rowH = height / Math.max(n, 1);
+    const rowH = tileRowHeight(n, height);
     const span = rc.valueRange.max - rc.valueRange.min || 1;
 
     for (let i = 0; i < n; i++) {
