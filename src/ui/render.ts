@@ -4,6 +4,12 @@ export interface RenderOptions {
   tileThreshold?: number;
 }
 
+export interface RenderContext {
+  valueRange: { min: number; max: number };
+  rankOf: Map<number, number>;
+  n: number;
+}
+
 export class StackRenderer {
   private ctx: CanvasRenderingContext2D;
   private tileThreshold: number;
@@ -24,12 +30,12 @@ export class StackRenderer {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  private hue(value: number, min: number, max: number): string {
-    const frac = max > min ? (value - min) / (max - min) : 0.5;
+  private hueByRank(rank: number, n: number): string {
+    const frac = n > 1 ? rank / (n - 1) : 0.5;
     return `hsl(${Math.round(220 - frac * 220)}, 70%, 55%)`;
   }
 
-  render(stacks: Stacks, valueRange: { min: number; max: number }): void {
+  render(stacks: Stacks, rc: RenderContext): void {
     const { ctx } = this;
     const rect = this.canvas.getBoundingClientRect();
     const W = rect.width;
@@ -40,10 +46,9 @@ export class StackRenderer {
     const largest = Math.max(stacks.a.length, stacks.b.length);
     const useTiles = largest > 0 && largest <= this.tileThreshold;
 
-    this.drawColumn(stacks.a, 0, halfW, H, valueRange, useTiles);
-    this.drawColumn(stacks.b, halfW, halfW, H, valueRange, useTiles);
+    this.drawColumn(stacks.a, 0, halfW, H, rc, useTiles);
+    this.drawColumn(stacks.b, halfW, halfW, H, rc, useTiles);
 
-    // divider
     ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.beginPath();
     ctx.moveTo(halfW, 0);
@@ -56,30 +61,56 @@ export class StackRenderer {
     x0: number,
     width: number,
     height: number,
-    range: { min: number; max: number },
+    rc: RenderContext,
     useTiles: boolean,
   ): void {
     const { ctx } = this;
     const n = stack.length;
     if (n === 0) return;
     const rowH = height / Math.max(n, 1);
-    const span = range.max - range.min || 1;
+    const span = rc.valueRange.max - rc.valueRange.min || 1;
 
     for (let i = 0; i < n; i++) {
       const value = stack[i];
+      const rank = rc.rankOf.get(value) ?? 0;
       const y = i * rowH;
-      const color = this.hue(value, range.min, range.max);
+      const isTop = i === 0;
+      const color = this.hueByRank(rank, rc.n);
+
       if (useTiles) {
         ctx.fillStyle = color;
         ctx.fillRect(x0 + 8, y + 1, width - 16, rowH - 2);
+        if (isTop) {
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x0 + 8, y + 1, width - 16, rowH - 2);
+        }
         ctx.fillStyle = "rgba(0,0,0,0.85)";
-        ctx.font = `${Math.min(16, rowH - 4)}px monospace`;
         ctx.textBaseline = "middle";
-        ctx.fillText(String(value), x0 + 14, y + rowH / 2);
+        if (rowH >= 22) {
+          ctx.font = `bold ${Math.min(15, rowH * 0.4)}px monospace`;
+          ctx.fillText(String(value), x0 + 14, y + rowH * 0.4);
+          ctx.font = `${Math.min(11, rowH * 0.28)}px monospace`;
+          ctx.fillText(`#${rank}`, x0 + 14, y + rowH * 0.74);
+        } else {
+          ctx.font = `${Math.min(14, rowH - 4)}px monospace`;
+          ctx.fillText(`${value} #${rank}`, x0 + 14, y + rowH / 2);
+        }
       } else {
-        const barW = ((value - range.min) / span) * (width - 12) + 2;
+        const barW = ((value - rc.valueRange.min) / span) * (width - 12) + 2;
         ctx.fillStyle = color;
         ctx.fillRect(x0 + 4, y, barW, Math.max(1, rowH - 1));
+        if (isTop) {
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(x0 + 4, y, barW, Math.max(1, rowH - 1));
+        }
+        if (rowH >= 10) {
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.font = `${Math.min(10, rowH - 2)}px monospace`;
+          ctx.textBaseline = "middle";
+          ctx.fillText(`#${rank}`, x0 + 6, y + rowH / 2);
+        }
       }
     }
   }
