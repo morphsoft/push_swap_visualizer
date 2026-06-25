@@ -1,5 +1,5 @@
 import type { Timeline } from "../core/engine";
-import type { StackRenderer } from "./render";
+import type { StackRenderer, RenderContext } from "./render";
 
 export class Animator {
   private idx = 0;
@@ -11,8 +11,9 @@ export class Animator {
   constructor(
     private timeline: Timeline,
     private renderer: StackRenderer,
-    private valueRange: { min: number; max: number },
+    private renderContext: RenderContext,
     private onFrame: (index: number) => void,
+    private onOp?: (opIndex: number) => void,
   ) {
     this.renderCurrent();
   }
@@ -30,8 +31,12 @@ export class Animator {
   }
 
   private renderCurrent(): void {
-    this.renderer.render(this.timeline.stateAt(this.idx), this.valueRange);
+    this.renderer.render(this.timeline.stateAt(this.idx), this.renderContext);
     this.onFrame(this.idx);
+  }
+
+  redraw(): void {
+    this.renderCurrent();
   }
 
   seek(index: number): void {
@@ -40,7 +45,11 @@ export class Animator {
   }
 
   stepForward(): void {
-    if (this.idx < this.timeline.length) this.seek(this.idx + 1);
+    if (this.idx < this.timeline.length) {
+      const applied = this.idx;
+      this.seek(this.idx + 1);
+      this.onOp?.(applied);
+    }
   }
 
   stepBack(): void {
@@ -67,7 +76,10 @@ export class Animator {
         this.accumulator -= 1;
         advanced = true;
       }
-      if (advanced) this.renderCurrent();
+      if (advanced) {
+        this.renderCurrent();
+        this.onOp?.(this.idx - 1);
+      }
       if (this.idx >= this.timeline.length) {
         this.pause();
         return;
