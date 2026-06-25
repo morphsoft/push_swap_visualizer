@@ -35,7 +35,11 @@ export function solve(numbers: number[]): OpToken[] {
   const maxRotations = n * n + n;
   let rotations = 0;
   while (st.a.length > 0) {
-    if (rotations > maxRotations) break; // safety escape
+    if (rotations > maxRotations) {
+      // Analytically unreachable for supported sizes; fail loudly rather than
+      // silently returning an incorrect (KO) op sequence.
+      throw new Error("solver exceeded rotation bound — please report");
+    }
     const topRank = rankOf.get(st.a[0])!;
     if (topRank < target + chunkSize) {
       emit("pb");
