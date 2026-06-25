@@ -46,5 +46,10 @@ export function renderMetrics(
   if (grade.applicable) {
     parts.push(`${grade.points}/5 — ${t(gradeKey[grade.label])}`);
   }
-  el.innerHTML = parts.map((p) => `<div>${p}</div>`).join("");
+  el.replaceChildren();
+  for (const p of parts) {
+    const div = document.createElement("div");
+    div.textContent = p;
+    el.appendChild(div);
+  }
 }
