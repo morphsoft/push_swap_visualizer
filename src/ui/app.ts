@@ -13,9 +13,19 @@ import { t, setLang, getLang, type Lang } from "./i18n";
 
 type Mode = "visualizer" | "solver";
 
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function mountApp(root: HTMLElement): void {
   let mode: Mode = "visualizer";
   let cleanupControls: (() => void) | null = null;
+  let cleanupResize: (() => void) | null = null;
 
   const render = () => {
     root.innerHTML = "";
@@ -27,27 +37,27 @@ export function mountApp(root: HTMLElement): void {
     el.className = "layout";
     el.innerHTML = `
       <header class="topbar">
-        <h1>${t("title")}</h1>
+        <h1>${esc(t("title"))}</h1>
         <nav class="modes">
-          <button data-mode="visualizer" class="${mode === "visualizer" ? "active" : ""}">${t("mode_visualizer")}</button>
-          <button data-mode="solver" class="${mode === "solver" ? "active" : ""}">${t("mode_solver")}</button>
-          <button disabled title="${t("coming_soon")}">${t("mode_interpreter")} (${t("coming_soon")})</button>
+          <button data-mode="visualizer" class="${mode === "visualizer" ? "active" : ""}">${esc(t("mode_visualizer"))}</button>
+          <button data-mode="solver" class="${mode === "solver" ? "active" : ""}">${esc(t("mode_solver"))}</button>
+          <button disabled title="${esc(t("coming_soon"))}">${esc(t("mode_interpreter"))} (${esc(t("coming_soon"))})</button>
         </nav>
         <button id="langToggle">${getLang() === "pt" ? "EN" : "PT"}</button>
       </header>
       <main class="main">
         <section class="inputs">
-          <label>${t("numbers_label")}</label>
+          <label>${esc(t("numbers_label"))}</label>
           <textarea id="numbers" rows="3"></textarea>
           <div class="suggest-row">
             <select id="size"><option>3</option><option>5</option><option selected>100</option><option>500</option></select>
-            <button id="suggest">${t("suggest")}</button>
+            <button id="suggest">${esc(t("suggest"))}</button>
           </div>
           <div id="opsBlock" style="${mode === "solver" ? "display:none" : ""}">
-            <label>${t("ops_label")}</label>
+            <label>${esc(t("ops_label"))}</label>
             <textarea id="ops" rows="6"></textarea>
           </div>
-          <button id="run">${t("run")}</button>
+          <button id="run">${esc(t("run"))}</button>
           <div id="errors" class="errors"></div>
         </section>
         <section class="stage">
@@ -130,7 +140,10 @@ export function mountApp(root: HTMLElement): void {
 
     const canvas = el.querySelector("#canvas") as HTMLCanvasElement;
     const renderer = new StackRenderer(canvas);
-    window.addEventListener("resize", () => renderer.resize());
+    if (cleanupResize) cleanupResize();
+    const onResize = () => renderer.resize();
+    window.addEventListener("resize", onResize);
+    cleanupResize = () => window.removeEventListener("resize", onResize);
 
     const counter = el.querySelector("#counter") as HTMLElement;
     const scrubber = el.querySelector("#scrubber") as HTMLInputElement;
