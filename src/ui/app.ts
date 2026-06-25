@@ -28,6 +28,8 @@ export function mountApp(root: HTMLElement): void {
   let cleanupResize: (() => void) | null = null;
 
   const render = () => {
+    if (cleanupControls) { cleanupControls(); cleanupControls = null; }
+    if (cleanupResize) { cleanupResize(); cleanupResize = null; }
     root.innerHTML = "";
     root.appendChild(buildLayout());
   };
