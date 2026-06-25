@@ -36,11 +36,16 @@ export function mountApp(root: HTMLElement): void {
   let mode: Mode = "visualizer";
   let cleanupControls: (() => void) | null = null;
   let cleanupResize: (() => void) | null = null;
+  let currentAnimator: Animator | null = null;
   let soundOn = false;
   let volume = 0.5;
   const sound = new SoundPlayer();
 
   const render = () => {
+    // Stop any in-flight playback before tearing down the DOM, otherwise the
+    // old animator's requestAnimationFrame loop keeps running against a
+    // detached canvas and piles up on every mode/language switch.
+    if (currentAnimator) { currentAnimator.pause(); currentAnimator = null; }
     if (cleanupControls) { cleanupControls(); cleanupControls = null; }
     if (cleanupResize) { cleanupResize(); cleanupResize = null; }
     root.innerHTML = "";
@@ -219,6 +224,10 @@ export function mountApp(root: HTMLElement): void {
         b0 === undefined ? "B —" : `B.top ${b0} (#${rankOf.get(b0) ?? 0})`;
     };
 
+    // Stop the previous run's animator before starting a new one, so two
+    // rAF loops never repaint the same canvas (which made an earlier run
+    // "come back" over a new one).
+    if (currentAnimator) currentAnimator.pause();
     const animator = new Animator(
       timeline, renderer, renderContext, updateFrame,
       (opIndex) => {
@@ -227,6 +236,7 @@ export function mountApp(root: HTMLElement): void {
         if (moved !== null) sound.playRank(rankOf.get(moved) ?? 0, n);
       },
     );
+    currentAnimator = animator;
 
     if (cleanupResize) cleanupResize();
     const onResize = () => { renderer.resize(); animator.redraw(); };
