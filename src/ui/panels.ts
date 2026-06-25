@@ -14,7 +14,7 @@ export function formatError(e: ParseError): string {
     "out-of-range": "err_out_of_range",
     "unknown-op": "err_unknown_op",
   } as const;
-  const where = e.line !== undefined ? `linha ${e.line}: ` : "";
+  const where = e.line !== undefined ? `${t("line_prefix")} ${e.line}: ` : "";
   return `${where}'${e.token}' ${t(keyByKind[e.kind])}`;
 }
 
